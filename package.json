@@ -1,5 +1,5 @@
 {
-  "name": "@Mable-AI/hound",
+  "name": "@mable-ai/hound",
   "private": false,
   "version": "0.8.29-local",
   "type": "module",
@@ -23,13 +23,6 @@
     "lib/",
     "tailwind-config.js"
   ],
-  "publishConfig": {
-    "@Mable-AI:registry": "https://npm.pkg.github.com"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git@github.com:Mable-AI/hound.git"
-  },
   "main": "./lib/index.js",
   "dependencies": {
     "@floating-ui/react": "^0.26.28",
