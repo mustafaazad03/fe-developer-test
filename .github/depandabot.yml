@@ -1,0 +1,12 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/" # Location of package manifests
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10 # Optional, limits the number of open PRs
+    labels: ["dependencies"] # Optional, add labels to PRs
+    groups:
+      all-updates: # Group name
+        patterns:
+          - "*" # Group all updates into a single PR

@@ -1,0 +1,30 @@
+# Name of our action
+name: 'Chromatic'
+# The event that will trigger the action
+on: push
+# What the action will do
+jobs:
+  test:
+    # The operating system it will run on
+    runs-on: ubuntu-latest
+    # The list of steps that the action will go through
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      # 👇 Add step to setup pnpm
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8 # Use the pnpm version you're using locally
+      # 👇 Use pnpm install instead of yarn
+      - run: pnpm install
+      - uses: chromaui/action@latest
+        with:
+          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # 👇 Adds exitOnceUploaded flag to speed up CI
+          exitOnceUploaded: true # Skip waiting for build results
+          onlyChanged: true # Optional: only test changed components
