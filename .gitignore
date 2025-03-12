@@ -23,7 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 
-lib
+/lib
 *storybook.log
 .npmrc
 storybook-static
