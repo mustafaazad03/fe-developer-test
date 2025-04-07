@@ -27,6 +27,34 @@ const InputWrapper: React.FC<React.ComponentProps<typeof Input>> = (args) => {
   );
 };
 
+const StandaloneInputWrapper: React.FC<React.ComponentProps<typeof Input>> = (
+  args,
+) => {
+  const [value, setValue] = React.useState(args.defaultValue || "");
+  const [error, setError] = React.useState<string | undefined>();
+
+  return (
+    <div>
+      <Input
+        {...args}
+        standalone={true}
+        errorMessage={error}
+        onChange={(e) => {
+          setValue(e.target.value as string);
+          if (args.required && !e.target.value) {
+            setError("This field is required");
+          } else {
+            setError(undefined);
+          }
+        }}
+      />
+      <div style={{ marginTop: "10px" }}>
+        Current value: {value ? JSON.stringify(value) : "(empty)"}
+      </div>
+    </div>
+  );
+};
+
 export const Text: Story = {
   args: {
     name: "textInput",
@@ -38,6 +66,15 @@ export const Text: Story = {
 
     placeholder: "Enter text",
     defaultValue: "Hi theres",
+  },
+  render: (args) => <InputWrapper {...args} />,
+};
+
+export const TextNotRequired: Story = {
+  args: {
+    ...Text.args,
+    required: false,
+    disabled: false,
   },
   render: (args) => <InputWrapper {...args} />,
 };
@@ -89,7 +126,7 @@ export const Radio: Story = {
     label: "Radio Input",
     radioOptions: [
       { label: "Option 1", value: "1" },
-      { label: "Option 2", value: "2" },
+      { label: "Option 2", value: "2", disabled: true },
       { label: "Option 3", value: "3" },
     ],
   },
@@ -162,13 +199,71 @@ export const WithCustomOnChange: Story = {
     type: "text",
     label: "Custom OnChange Input",
     placeholder: "Type something",
-    onChange: (e: any) => {
+    onChange: (
+      e: React.ChangeEvent<HTMLInputElement> | { value: string } | any,
+    ) => {
       if ("target" in e) {
         console.log("Custom onChange:", e.target.value);
       } else {
         console.log("Custom onChange:", e.value);
       }
     },
+  },
+  render: (args) => <InputWrapper {...args} />,
+};
+
+export const RadioWithDisabledOption: Story = {
+  args: {
+    name: "radioWithDisabled",
+    type: "radio",
+    label: "Radio With Disabled Option",
+    radioOptions: [
+      { label: "Option 1", value: "1" },
+      { label: "Option 2", value: "2", disabled: true },
+      { label: "Option 3", value: "3" },
+    ],
+  },
+  render: (args) => <InputWrapper {...args} />,
+};
+
+export const RadioEmpty: Story = {
+  args: {
+    name: "radioEmpty",
+    type: "radio",
+    label: "Radio With No Options",
+    radioOptions: [],
+  },
+  render: (args) => <InputWrapper {...args} />,
+};
+
+export const DropdownEmpty: Story = {
+  args: {
+    name: "dropdownEmpty",
+    type: "dropdown",
+    label: "Dropdown With No Options",
+    dropdownOptions: [],
+  },
+  render: (args) => <InputWrapper {...args} />,
+};
+
+export const StandaloneInput: Story = {
+  args: {
+    name: "standaloneInput",
+    type: "text",
+    label: "Standalone Input",
+    placeholder: "This input works without Form context",
+    required: true,
+  },
+  render: (args) => <StandaloneInputWrapper {...args} />,
+};
+
+export const PasswordWithWeakValue: Story = {
+  args: {
+    name: "weakPassword",
+    type: "password",
+    label: "Weak Password Input",
+    placeholder: "Enter password",
+    defaultValue: "weak",
   },
   render: (args) => <InputWrapper {...args} />,
 };
@@ -266,6 +361,46 @@ WithCustomOnChange.parameters = {
   docs: {
     description: {
       story: "An input field with a custom onChange handler.",
+    },
+  },
+};
+
+RadioWithDisabledOption.parameters = {
+  docs: {
+    description: {
+      story: "A radio button group with a disabled option.",
+    },
+  },
+};
+
+RadioEmpty.parameters = {
+  docs: {
+    description: {
+      story: "Testing edge case: Radio input with empty options array.",
+    },
+  },
+};
+
+DropdownEmpty.parameters = {
+  docs: {
+    description: {
+      story: "Testing edge case: Dropdown with empty options array.",
+    },
+  },
+};
+
+StandaloneInput.parameters = {
+  docs: {
+    description: {
+      story: "Input used outside FormContext with standalone validation.",
+    },
+  },
+};
+
+PasswordWithWeakValue.parameters = {
+  docs: {
+    description: {
+      story: "Testing password validation with a weak password.",
     },
   },
 };

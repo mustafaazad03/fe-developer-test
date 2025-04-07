@@ -13,7 +13,7 @@ import { AiOutlineInfoCircle } from "react-icons/ai";
 interface CustomChangeEvent {
   target: {
     name: string;
-    value: any;
+    value: string | number | boolean;
     type: string;
   };
 }
@@ -41,6 +41,8 @@ interface CustomInputProps
   onChange?: (
     event: React.ChangeEvent<HTMLInputElement> | CustomChangeEvent,
   ) => void;
+  standalone?: boolean;
+  errorMessage?: string;
 }
 
 const inputClass = tv({
@@ -167,7 +169,9 @@ const Input = React.forwardRef<HTMLInputElement, CustomInputProps>(
       trigger(name);
     };
 
-    const createCustomEvent = (value: any): CustomChangeEvent => ({
+    const createCustomEvent = (
+      value: string | number | boolean,
+    ): CustomChangeEvent => ({
       target: {
         name,
         value,
@@ -210,7 +214,9 @@ const Input = React.forwardRef<HTMLInputElement, CustomInputProps>(
                   else if (ref) ref.current = e;
                 }
               }}
-              onChange={(checked) => handleChange(createCustomEvent(checked))}
+              onChange={(event) =>
+                handleChange(createCustomEvent(event.target.checked))
+              }
             />
           );
         case "dropdown":
@@ -267,15 +273,17 @@ const Input = React.forwardRef<HTMLInputElement, CustomInputProps>(
     };
 
     React.useEffect(() => {
-      renderInput();
-      if (!disabled) resetField(name, { defaultValue: props.defaultValue });
-    }, [disabled]);
+      if (disabled === undefined) return;
+
+      resetField(name, { defaultValue: props.defaultValue });
+    }, [disabled, name, props.defaultValue, resetField]);
 
     const renderLabel = () => {
       if (type === "switch" || type === "radio") return null;
       return (
         <label htmlFor={name} className="body-2 text-white">
           {label}
+          {required && <span className="text-error-600 ml-1">*</span>}
         </label>
       );
     };
@@ -293,6 +301,7 @@ const Input = React.forwardRef<HTMLInputElement, CustomInputProps>(
         </Tooltip>
       );
     };
+
     return (
       <div
         className={`flex flex-col gap-2 w-full py-1 h-fit ${disabled ? "opacity-40" : "opacity-100"}`}
