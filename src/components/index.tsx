@@ -5,6 +5,8 @@ export { BulletSlider } from '@/components/Atoms/Controls/BulletSlider';
 export { default as Button } from '@/components/Atoms/Controls/Button';
 export { default as Switch } from '@/components/Atoms/Controls/Switch';
 export { default as Textarea } from '@/components/Atoms/Controls/Textarea';
+export { default as FloatingChatbot } from '@/components/Atoms/Controls/FloatingChatbot';
+export { Chatbot } from '@/components/Atoms/Controls/FloatingChatbot';
 export { BidirectionalSlider } from '@/components/Atoms/Controls/BidirectionalSlider';
 export { default as Slider } from '@/components/Atoms/Controls/Slider';
 export { default as Input } from '@/components/Atoms/Controls/Input';
