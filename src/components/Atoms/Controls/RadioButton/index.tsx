@@ -2,17 +2,44 @@ import React from "react";
 import { VariantProps } from "class-variance-authority";
 import { tv } from "tailwind-variants";
 import { RadioOptions } from "@/types";
+import { useFormContext, Controller } from "react-hook-form";
+
+const radioGroupVariants = tv({
+  base: "flex",
+  variants: {
+    orientation: {
+      vertical: "flex-col gap-4",
+      horizontal: "flex-row gap-6",
+    },
+  },
+  defaultVariants: {
+    orientation: "vertical",
+  },
+});
 
 const radioVariants = tv({
-  base: "flex items-center space-x-2 cursor-pointer",
+  base: "flex items-center space-x-2 cursor-pointer transition-opacity",
+  variants: {
+    disabled: {
+      true: "opacity-50 cursor-not-allowed",
+      false: "hover:opacity-90",
+    },
+  },
+  defaultVariants: {
+    disabled: false,
+  },
 });
 
 const bulletClassName = tv({
-  base: "w-6 h-6 bg-[#8390A4] rounded-full transition-all duration-200 ease-in-out relative cursor-pointer flex-shrink-0",
+  base: "bg-[#8390A4] rounded-full transition-all duration-200 ease-in-out relative cursor-pointer flex-shrink-0",
   variants: {
     active: {
       true: "bg-white border-primary-400 border-[3px]",
-      false: " ",
+      false: "",
+    },
+    error: {
+      true: "!border-red-500",
+      false: "",
     },
     size: {
       sm: "w-4 h-4",
@@ -22,63 +49,150 @@ const bulletClassName = tv({
   },
   defaultVariants: {
     size: "md",
+    active: false,
+    error: false,
+  },
+});
+
+const labelClassName = tv({
+  base: "transition-colors",
+  variants: {
+    active: {
+      true: "text-white",
+      false: "text-white/80",
+    },
+    error: {
+      true: "text-red-500",
+      false: "",
+    },
+  },
+  defaultVariants: {
+    active: false,
+    error: false,
   },
 });
 
 type RadioProps = {
+  name?: string;
   labelClassName?: string;
   options: RadioOptions[];
-  defaultValue: string;
+  defaultValue?: string;
+  value?: string;
   className?: string;
-  onClick: (value: { label: string; value: string }) => void;
+  error?: boolean;
+  errorMessage?: string;
+  orientation?: "vertical" | "horizontal";
+  onChange?: (option: RadioOptions) => void;
 } & VariantProps<typeof bulletClassName>;
 
 const Radio: React.FC<RadioProps> = ({
+  name,
   options,
   defaultValue,
+  value: controlledValue,
   className,
-  labelClassName,
-  onClick,
+  labelClassName: customLabelClassName,
+  error = false,
+  errorMessage,
+  orientation = "vertical",
+  onChange,
   size,
 }) => {
-  const [selectedValue, setSelectedValue] = React.useState(defaultValue);
+  const isControlled = controlledValue !== undefined;
+  const [selectedValue, setSelectedValue] = React.useState(defaultValue || "");
 
-  const handleClick = (option: RadioOptions) => {
-    if (!option.disabled) {
+  // Get actual current value based on controlled/uncontrolled status
+  const currentValue = isControlled ? controlledValue : selectedValue;
+
+  const formContext = useFormContext();
+  const isInForm = Boolean(name && formContext);
+
+  const handleChange = (option: RadioOptions) => {
+    if (option.disabled) return;
+
+    if (!isControlled) {
       setSelectedValue(option.value);
-      onClick(option);
+    }
+
+    if (onChange) {
+      onChange(option);
     }
   };
 
-  return (
-    <div className={className}>
+  // When controlled value changes, update selected value
+  React.useEffect(() => {
+    if (isControlled && controlledValue !== selectedValue) {
+      setSelectedValue(controlledValue);
+    }
+  }, [controlledValue, isControlled]);
+
+  // Render normal radio group when not in a form
+  const renderRadioGroup = (
+    value: string,
+    onChange: (option: RadioOptions) => void,
+  ) => (
+    <div className={radioGroupVariants({ orientation, className })}>
       {options.map((option) => (
         <label
           key={option.value}
-          className={radioVariants({
-            className: option.disabled ? "opacity-50 cursor-not-allowed" : "",
-          })}
+          className={radioVariants({ disabled: option.disabled })}
         >
           <input
             type="radio"
             value={option.value}
-            checked={selectedValue === option.value}
-            onChange={() => handleClick(option)}
+            name={name}
+            checked={value === option.value}
+            onChange={() => onChange(option)}
             disabled={option.disabled}
             className="sr-only"
+            aria-checked={value === option.value}
           />
           <div
             className={bulletClassName({
               size,
-              active: selectedValue === option.value,
+              active: value === option.value,
+              error,
             })}
+            role="presentation"
           />
 
-          <span className={labelClassName}>{option.label}</span>
+          <span
+            className={
+              customLabelClassName ||
+              labelClassName({
+                active: value === option.value,
+                error,
+              })
+            }
+          >
+            {option.label}
+          </span>
         </label>
       ))}
+      {error && errorMessage && (
+        <p className="text-red-500 text-sm mt-1">{errorMessage}</p>
+      )}
     </div>
   );
+
+  // If using React Hook Form, use the Controller component
+  if (isInForm && name) {
+    return (
+      <Controller
+        name={name}
+        control={formContext.control}
+        defaultValue={defaultValue || ""}
+        render={({ field }) =>
+          renderRadioGroup(field.value, (option) => {
+            field.onChange(option.value);
+            handleChange(option);
+          })
+        }
+      />
+    );
+  }
+
+  return renderRadioGroup(currentValue, handleChange);
 };
 
 export default Radio;

@@ -193,7 +193,7 @@ const Input = React.forwardRef<HTMLInputElement, CustomInputProps>(
               defaultValue={String(props.defaultValue)}
               className="space-y-2"
               labelClassName="body-2 text-white ml-3"
-              onClick={(selectedOption) =>
+              onChange={(selectedOption) =>
                 handleChange(createCustomEvent(selectedOption.value))
               }
               size="sm"

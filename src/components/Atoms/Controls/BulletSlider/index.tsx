@@ -1,13 +1,13 @@
 import React, { useEffect, useState, useRef } from "react";
 import { tv, type VariantProps } from "tailwind-variants";
 
-const bulletSlider = tv({
+const bulletSliderVariants = tv({
   base: "flex flex-row justify-between relative w-full",
   variants: {
     size: {
-      sm: "",
-      md: "",
-      lg: "",
+      sm: "gap-2",
+      md: "gap-3",
+      lg: "gap-4",
     },
   },
   defaultVariants: {
@@ -15,15 +15,15 @@ const bulletSlider = tv({
   },
 });
 
-const bullet = tv({
+const bulletVariants = tv({
   base: "rounded-full transition-all duration-200 ease-in-out relative cursor-pointer bg-[#8390A4]",
   variants: {
     active: {
       true: "bg-white border-primary-400 border-[3px]",
-      false: " ",
+      false: "",
     },
     passed: {
-      true: " bg-primary-400",
+      true: "bg-primary-400",
       false: "",
     },
     size: {
@@ -31,28 +31,33 @@ const bullet = tv({
       md: "w-6 h-6",
       lg: "w-7 h-7",
     },
+    disabled: {
+      true: "opacity-50 cursor-not-allowed",
+      false: "hover:opacity-90",
+    },
   },
   defaultVariants: {
     active: false,
     size: "md",
+    disabled: false,
   },
 });
 
-const line = tv({
-  base: "h-[0px] border-[2px] border-[#8390A4] absolute z-[-1] top-1/2 -translate-y-1/2 left-[50%] w-full",
+const lineVariants = tv({
+  base: "h-0 border-[#8390A4] absolute z-[-1] top-1/2 -translate-y-1/2",
   variants: {
     passed: {
       true: "border-primary-400",
       false: "",
     },
     size: {
-      sm: "border-[1.5px]",
-      md: "border-[2px]",
-      lg: "border-[2.5px]",
+      sm: "border-t-[1.5px]",
+      md: "border-t-[2px]",
+      lg: "border-t-[2.5px]",
     },
     dashed: {
-      true: "[border-style:dashed] [border-width:2px_0_0_0] [gap:1rem]",
-      false: "",
+      true: "border-dashed",
+      false: "border-solid",
     },
   },
   defaultVariants: {
@@ -61,127 +66,148 @@ const line = tv({
   },
 });
 
-const customInput = tv({
+const inputVariants = tv({
   base: "bg-white bg-opacity-10 text-white text-center focus:outline-none focus:border-primary-400 p-1 rounded-md",
   variants: {
     size: {
-      sm: "text-[12px] w-28",
-      md: "text-[13px] w-[7rem]",
-      lg: "text-lg w-36",
+      sm: "text-xs w-28",
+      md: "text-sm w-[7rem]",
+      lg: "text-base w-36",
+    },
+    error: {
+      true: "border-red-500 focus:border-red-500",
+      false: "",
     },
   },
   defaultVariants: {
     size: "md",
+    error: false,
   },
 });
 
-const label = tv({
+const labelVariants = tv({
   base: "mt-2 text-white text-center",
   variants: {
     size: {
-      sm: "text-[14px]",
-      md: "text-base",
-      lg: "text-lg",
+      sm: "text-xs",
+      md: "text-sm",
+      lg: "text-base",
+    },
+    active: {
+      true: "font-medium",
+      false: "",
     },
   },
   defaultVariants: {
     size: "md",
+    active: false,
   },
 });
 
-/**
- * BulletSlider is a customizable progress indicator component that displays a series of connected bullet points.
- * Each bullet represents a step or stage in a process, with connecting lines between them to show progression.
- *
- * Features:
- * - Responsive full-width layout with evenly spaced bullets
- * - Customizable bullet and line sizes (sm, md, lg)
- * - Optional custom input field as the last step
- * - Visual indication of completed steps
- * - Support for dashed lines for custom input section
- *
- * @param {JSX.Element[]} steps - Array of React elements to be displayed as labels below each bullet
- * @param {Function} onChange - Callback function triggered when a step is selected. Receives step index and optional custom value
- * @param {string} [className] - Additional CSS classes to apply to the container
- * @param {number} [defaultActiveStep=1] - Initial active step index (0-based)
- * @param {boolean} [linePassed=true] - Whether to show completed lines for passed steps
- * @param {boolean} [showCustomInput=false] - Whether to show a custom input field as the last step
- * @param {string} [customInputPlaceholder="Custom"] - Placeholder text for the custom input field
- * @param {string} [defaultCustomValue=""] - Initial value for the custom input field
- * @param {"sm" | "md" | "lg"} [size="md"] - Size variant for bullets and lines
- *
- * @example
- * ```tsx
- * <BulletSlider
- *   steps={["Step 1", "Step 2", "Step 3"]}
- *   onChange={(step, customValue) => console.log(step, customValue)}
- *   size="md"
- *   showCustomInput={true}
- * />
- * ```
- */
-interface BulletSliderProps extends VariantProps<typeof bulletSlider> {
+// Types for the component
+interface BulletSliderProps extends VariantProps<typeof bulletSliderVariants> {
   steps: JSX.Element[];
   onChange: (step: number, customValue?: string) => void;
   className?: string;
   defaultActiveStep?: number;
+  value?: number;
   linePassed?: boolean;
   showCustomInput?: boolean;
   customInputPlaceholder?: string;
   defaultCustomValue?: string;
+  customInputError?: boolean;
+  customInputErrorMessage?: string;
+  disabled?: boolean;
   size?: "sm" | "md" | "lg";
 }
+
+const Bullet = ({
+  active,
+  passed,
+  size,
+  disabled,
+  onClick,
+}: {
+  active: boolean;
+  passed: boolean;
+  size?: "sm" | "md" | "lg";
+  disabled?: boolean;
+  onClick: () => void;
+}) => (
+  <button
+    className={bulletVariants({ active, passed, size, disabled })}
+    onClick={disabled ? undefined : onClick}
+    disabled={disabled}
+    aria-disabled={disabled}
+    type="button"
+    role="tab"
+    aria-selected={active}
+  />
+);
+
+const Line = ({
+  passed,
+  size,
+  dashed,
+  style,
+}: {
+  passed: boolean;
+  size?: "sm" | "md" | "lg";
+  dashed: boolean;
+  style: React.CSSProperties;
+}) => (
+  <div
+    className={lineVariants({ passed, size, dashed })}
+    style={style}
+    role="presentation"
+  />
+);
 
 export const BulletSlider: React.FC<BulletSliderProps> = ({
   steps,
   onChange,
   defaultActiveStep = 1,
+  value: controlledValue,
   className,
   linePassed = true,
   showCustomInput = false,
   customInputPlaceholder = "Custom",
   defaultCustomValue = "",
+  customInputError = false,
+  customInputErrorMessage,
+  disabled = false,
   size = "md",
 }) => {
-  const [lineWidth, setLineWidth] = useState(0);
-  const [customValue, setCustomValue] = useState(defaultCustomValue);
+  // State for internal tracking of active step (for uncontrolled component)
   const [activeStep, setActiveStep] = useState(defaultActiveStep);
+  // State for custom input value
+  const [customValue, setCustomValue] = useState(defaultCustomValue);
 
-  const bulletRefs = useRef<(HTMLDivElement | null)[]>([]);
+  // Component is controlled if value prop is provided
+  const isControlled = controlledValue !== undefined;
+  // Get current active step (controlled or uncontrolled)
+  const currentActiveStep = isControlled ? controlledValue : activeStep;
 
+  // Ref for container element to calculate widths
+  const containerRef = useRef<HTMLDivElement>(null);
+  // Track whether component is mounted
+  const isMounted = useRef(false);
+
+  // Total steps including potential custom input
   const totalSteps = showCustomInput
     ? [...steps, <div key="custom">Custom</div>]
     : steps;
+
   const lastIndex = totalSteps.length - 1;
 
-  const calculateLineWidth = () => {
-    if (bulletRefs.current[0] && bulletRefs.current[1]) {
-      const standardWidth =
-        bulletRefs.current[1].getBoundingClientRect().left -
-        bulletRefs.current[0].getBoundingClientRect().left;
-      setLineWidth(standardWidth);
-    }
-  };
-
-  const getLineWidth = (index: number) => {
-    if (showCustomInput && index === totalSteps.length - 2) {
-      return lineWidth * 1.2;
-    }
-    return lineWidth;
-  };
-
-  useEffect(() => {
-    calculateLineWidth();
-    window.addEventListener("resize", calculateLineWidth);
-    return () => window.removeEventListener("resize", calculateLineWidth);
-  }, []);
-
-  useEffect(() => {
-    calculateLineWidth();
-  }, [steps]);
-
+  // Handle step click
   const handleStepClick = (index: number) => {
-    setActiveStep(index);
+    if (disabled) return;
+
+    if (!isControlled) {
+      setActiveStep(index);
+    }
+
     if (index === lastIndex && showCustomInput) {
       onChange(index, customValue);
     } else {
@@ -189,58 +215,117 @@ export const BulletSlider: React.FC<BulletSliderProps> = ({
     }
   };
 
+  // Handle custom input change
   const handleCustomInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (disabled) return;
+
     const value = e.target.value;
     setCustomValue(value);
-    if (activeStep === lastIndex) {
+
+    if (currentActiveStep === lastIndex) {
       onChange(lastIndex, value);
     }
   };
 
+  // Update custom value if defaultCustomValue changes
+  useEffect(() => {
+    setCustomValue(defaultCustomValue);
+  }, [defaultCustomValue]);
+
+  // Update internal state when controlled value changes
+  useEffect(() => {
+    if (isControlled && controlledValue !== activeStep) {
+      setActiveStep(controlledValue);
+    }
+  }, [controlledValue, isControlled]);
+
+  // Handle responsive recalculation on resize
+  useEffect(() => {
+    if (!isMounted.current) {
+      isMounted.current = true;
+      return;
+    }
+
+    const handleResize = () => {
+      // Force re-render on resize
+      setActiveStep((prev) => prev);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
-    <div className={bulletSlider({ size, className })}>
-      {totalSteps.map((step, index) => (
-        <div
-          key={index}
-          className="flex flex-col items-center"
-          ref={(el) => (bulletRefs.current[index] = el)}
-        >
-          <div className="flex items-center relative">
+    <div
+      className={bulletSliderVariants({ size, className })}
+      ref={containerRef}
+      role="tablist"
+      aria-orientation="horizontal"
+    >
+      {totalSteps.map((step, index) => {
+        const isLast = index === lastIndex;
+        const isCustomInput = showCustomInput && isLast;
+        const shouldShowLine = !isLast;
+
+        return (
+          <div
+            key={index}
+            className="flex flex-col items-center flex-1 relative"
+          >
+            <div className="flex items-center relative w-full">
+              <Bullet
+                active={currentActiveStep === index}
+                passed={linePassed ? currentActiveStep > index : false}
+                size={size}
+                disabled={disabled}
+                onClick={() => handleStepClick(index)}
+              />
+
+              {shouldShowLine && (
+                <Line
+                  passed={linePassed ? currentActiveStep > index : false}
+                  size={size}
+                  dashed={showCustomInput && index === lastIndex - 1}
+                  style={{
+                    width: "calc(100% - 8px)",
+                    left: "8px",
+                  }}
+                />
+              )}
+            </div>
+
             <div
-              className={bullet({
-                active: activeStep === index,
-                passed: linePassed ? activeStep > index : false,
+              className={labelVariants({
                 size,
+                active: currentActiveStep === index,
               })}
-              onClick={() => handleStepClick(index)}
-            />
-            {index !== totalSteps.length - 1 && (
-              <div
-                style={{ width: `${getLineWidth(index)}px` }}
-                className={line({
-                  passed: linePassed ? activeStep > index : false,
-                  size,
-                  dashed: showCustomInput && index === totalSteps.length - 2,
-                })}
-              />
-            )}
+              aria-hidden={currentActiveStep !== index}
+            >
+              {isCustomInput ? (
+                <div className="flex flex-col">
+                  <input
+                    type="text"
+                    value={customValue}
+                    onChange={handleCustomInputChange}
+                    placeholder={customInputPlaceholder}
+                    className={inputVariants({ size, error: customInputError })}
+                    onClick={() => handleStepClick(index)}
+                    disabled={disabled}
+                    aria-invalid={customInputError}
+                  />
+                  {customInputError && customInputErrorMessage && (
+                    <span className="text-xs text-red-500 mt-1">
+                      {customInputErrorMessage}
+                    </span>
+                  )}
+                </div>
+              ) : (
+                step
+              )}
+            </div>
           </div>
-          <div className={label({ size })}>
-            {showCustomInput && index === lastIndex ? (
-              <input
-                type="text"
-                value={customValue}
-                onChange={handleCustomInputChange}
-                placeholder={customInputPlaceholder}
-                className={customInput({ size })}
-                onFocus={() => handleStepClick(index)}
-              />
-            ) : (
-              step
-            )}
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };
